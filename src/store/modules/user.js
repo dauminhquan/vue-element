@@ -1,4 +1,4 @@
-import { loginByUsername, logout, getUserInfo } from '@/api/login'
+import { loginByUsername, loginByEmail, logout, getUserInfo } from '@/api/login'
 import { getToken, setToken, removeToken } from '@/utils/auth'
 
 const user = {
@@ -58,15 +58,29 @@ const user = {
         })
       })
     },
-
+    // Login by Email
+    LoginByEmail({ commit }, userInfo) {
+      const email = userInfo.email.trim()
+      return new Promise((resolve, reject) => {
+        loginByEmail(email, userInfo.password).then(response => {
+          const data = response.data
+          commit('SET_TOKEN', data.success.accept_token)
+          setToken(response.data.success.accept_token)
+          resolve()
+        }).catch(error => {
+          reject(error)
+        })
+      })
+    },
     // 获取用户信息
     GetUserInfo({ commit, state }) {
       return new Promise((resolve, reject) => {
-        getUserInfo(state.token).then(response => {
+        getUserInfo().then(response => {
           if (!response.data) { // 由于mockjs 不支持自定义状态码只能这样hack
-            reject('error')
+            reject('Vui lòng đăng nhập lại')
           }
           const data = response.data
+          data.roles = ['admin']
 
           if (data.roles && data.roles.length > 0) { // 验证返回的roles是否是一个非空数组
             commit('SET_ROLES', data.roles)

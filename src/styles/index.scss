@@ -191,3 +191,25 @@ code {
 .multiselect--active {
   z-index: 1000 !important;
 }
+
+
+.modal-default{
+  .el-dialog__title{
+    color: white !important;
+  }
+  .el-dialog__headerbtn .el-dialog__close {
+    color: white !important;
+  }
+}
+.modal-danger {
+  @extend .modal-default;
+  .el-dialog__header {
+    background-color: #f56c6c;
+  }
+}
+.modal-info {
+  @extend .modal-default;
+  .el-dialog__header {
+    background-color: #4AB7BD;
+  }
+}

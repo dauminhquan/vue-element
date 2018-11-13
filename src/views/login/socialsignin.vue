@@ -1,10 +1,10 @@
 <template>
   <div class="social-signup-container">
     <div class="sign-btn" @click="wechatHandleClick('wechat')">
-      <span class="wx-svg-container"><svg-icon icon-class="wechat" class="icon"/></span> 微信
+      <span class="fb-svg-container"><svg-icon icon-class="facebook" class="icon"/></span>
     </div>
     <div class="sign-btn" @click="tencentHandleClick('tencent')">
-      <span class="qq-svg-container"><svg-icon icon-class="qq" class="icon"/></span> QQ
+      <span class="fb-svg-container"><svg-icon icon-class="google" class="icon"/></span>
     </div>
   </div>
 </template>
@@ -48,22 +48,27 @@ export default {
       margin-top: 8px;
     }
     .wx-svg-container,
-    .qq-svg-container {
+    .qq-svg-container,
+    .fb-svg-container {
       display: inline-block;
       width: 40px;
       height: 40px;
       line-height: 40px;
       text-align: center;
-      padding-top: 1px;
       border-radius: 4px;
       margin-bottom: 20px;
       margin-right: 5px;
+      border: 1px solid rgba(149,146,145,0.59);
     }
     .wx-svg-container {
       background-color: #8ada53;
     }
     .qq-svg-container {
       background-color: #6BA2D6;
+      margin-left: 50px;
+    }
+    .fb-svg-container{
+      background-color: #ffffff;
       margin-left: 50px;
     }
   }

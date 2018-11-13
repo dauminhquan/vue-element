@@ -1,12 +1,28 @@
 import request from '@/utils/request'
-
+const UrlLogin = {
+  'login': '/login',
+  'profile': '/profile'
+}
 export function loginByUsername(username, password) {
   const data = {
     username,
     password
   }
+
   return request({
-    url: '/login/login',
+    url: UrlLogin.login,
+    method: 'post',
+    data
+  })
+}
+
+export function loginByEmail(email, password) {
+  const data = {
+    email,
+    password
+  }
+  return request({
+    url: UrlLogin.login,
     method: 'post',
     data
   })
@@ -19,11 +35,10 @@ export function logout() {
   })
 }
 
-export function getUserInfo(token) {
+export function getUserInfo() {
   return request({
-    url: '/user/info',
-    method: 'get',
-    params: { token }
+    url: UrlLogin.profile,
+    method: 'post'
   })
 }
 

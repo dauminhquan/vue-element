@@ -8,15 +8,15 @@
         <lang-select class="set-language"/>
       </div>
 
-      <el-form-item prop="username">
+      <el-form-item prop="email">
         <span class="svg-container">
           <svg-icon icon-class="user" />
         </span>
         <el-input
-          v-model="loginForm.username"
-          :placeholder="$t('login.username')"
-          name="username"
-          type="text"
+          v-model="loginForm.email"
+          :placeholder="$t('login.email')"
+          name="email"
+          type="email"
           auto-complete="on"
         />
       </el-form-item>
@@ -40,11 +40,11 @@
       <el-button :loading="loading" type="primary" style="width:100%;margin-bottom:30px;" @click.native.prevent="handleLogin">{{ $t('login.logIn') }}</el-button>
 
       <div class="tips">
-        <span>{{ $t('login.username') }} : admin</span>
+        <span>{{ $t('login.email') }} : admin</span>
         <span>{{ $t('login.password') }} : {{ $t('login.any') }}</span>
       </div>
       <div class="tips">
-        <span style="margin-right:18px;">{{ $t('login.username') }} : editor</span>
+        <span style="margin-right:18px;">{{ $t('login.email') }} : editor</span>
         <span>{{ $t('login.password') }} : {{ $t('login.any') }}</span>
       </div>
 
@@ -63,7 +63,7 @@
 </template>
 
 <script>
-import { isvalidUsername } from '@/utils/validate'
+import { isValidateEmail } from '@/utils/validate'
 import LangSelect from '@/components/LangSelect'
 import SocialSign from './socialsignin'
 
@@ -71,27 +71,27 @@ export default {
   name: 'Login',
   components: { LangSelect, SocialSign },
   data() {
-    const validateUsername = (rule, value, callback) => {
-      if (!isvalidUsername(value)) {
-        callback(new Error('Please enter the correct user name'))
+    const validateEmail = (rule, value, callback) => {
+      if (!isValidateEmail(value)) {
+        callback(new Error('Vui lòng điền Email của bạn'))
       } else {
         callback()
       }
     }
     const validatePassword = (rule, value, callback) => {
       if (value.length < 6) {
-        callback(new Error('The password can not be less than 6 digits'))
+        callback(new Error('Mật khẩu phải có chiều dài lớn hơn 6 ký tự'))
       } else {
         callback()
       }
     }
     return {
       loginForm: {
-        username: 'admin',
-        password: '1111111'
+        email: 'dauminhquantlu@gmail.com',
+        password: 'dauminhquan'
       },
       loginRules: {
-        username: [{ required: true, trigger: 'blur', validator: validateUsername }],
+        email: [{ required: true, trigger: 'blur', validator: validateEmail }],
         password: [{ required: true, trigger: 'blur', validator: validatePassword }]
       },
       passwordType: 'password',
@@ -127,7 +127,7 @@ export default {
       this.$refs.loginForm.validate(valid => {
         if (valid) {
           this.loading = true
-          this.$store.dispatch('LoginByUsername', this.loginForm).then(() => {
+          this.$store.dispatch('LoginByEmail', this.loginForm).then(() => {
             this.loading = false
             this.$router.push({ path: this.redirect || '/' })
           }).catch(() => {
