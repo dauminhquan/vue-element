@@ -48,15 +48,13 @@
         <span>{{ $t('login.password') }} : {{ $t('login.any') }}</span>
       </div>
 
-      <el-button class="thirdparty-button" type="primary" @click="showDialog=true">{{ $t('login.thirdparty') }}</el-button>
+      <el-button class="thirdparty-button" type="success" @click="showDialog=true">{{ $t('login.registration') }}</el-button>
     </el-form>
 
-    <el-dialog :title="$t('login.thirdparty')" :visible.sync="showDialog" append-to-body>
-      {{ $t('login.thirdpartyTips') }}
-      <br>
-      <br>
-      <br>
-      <social-sign />
+    <el-dialog :title="$t('login.registration')" :visible.sync="showDialog" append-to-body class="modal-info">
+      <social-sign
+        @doneRegistration="doneRegistration($event)"
+      />
     </el-dialog>
 
   </div>
@@ -130,7 +128,22 @@ export default {
           this.$store.dispatch('LoginByEmail', this.loginForm).then(() => {
             this.loading = false
             this.$router.push({ path: this.redirect || '/' })
-          }).catch(() => {
+          }).catch((error) => {
+            console.dir(error)
+            let message = ''
+            if (error.response !== undefined) {
+              if (error.response.data.error !== undefined) {
+                message = error.response.data.error
+              }
+            } else {
+              message = error.response.data.message
+            }
+            this.$notify({
+              title: this.$t('message.error'),
+              message: message,
+              type: 'error',
+              duration: 10000
+            })
             this.loading = false
           })
         } else {
@@ -138,6 +151,11 @@ export default {
           return false
         }
       })
+    },
+    doneRegistration(userInfo) {
+      this.showDialog = false
+      this.loginForm.email = userInfo.email
+      this.loginForm.password = ''
     },
     afterQRScan() {
       // const hash = window.location.hash.slice(1)

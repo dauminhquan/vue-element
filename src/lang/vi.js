@@ -79,8 +79,17 @@ export default {
     email: 'Email',
     password: 'Mật khẩu',
     any: 'any',
+    password_confirm: 'Nhập lại mật khẩu',
     thirdparty: 'Đăng nhập bằng',
+    registration: 'Đăng ký',
     thirdpartyTips: 'Can not be simulated on local, so please combine you own business simulation! ! !'
+  },
+  registration: {
+    email: 'Email',
+    password: 'Mật khẩu',
+    password_confirm: 'Điền lại mật khẩu',
+    name: 'Tên người dùng',
+    registration: 'Đăng ký'
   },
   documentation: {
     documentation: 'Documentation',
@@ -115,6 +124,7 @@ export default {
     password_confirm: 'Nhập lại mật khẩu',
     notices: 'Số thông báo chưa đọc',
     messages: 'Số tin nhắn đang đợi',
+    token: 'Token',
     invites: 'Số lời mời kết bạn',
     importance: 'Imp',
     type: 'Loại',
@@ -162,6 +172,7 @@ export default {
     closeAll: 'Close All'
   },
   message: {
-    success: 'Xóa thành công'
+    success: 'Thành công',
+    error: 'Thất bại'
   }
 }

@@ -30,9 +30,14 @@
           <span>{{ scope.row.id }}</span>
         </template>
       </el-table-column>
-      <el-table-column :label="$t('table.email')" width="200" align="center">
+      <el-table-column :label="$t('table.email')" width="500" align="center">
         <template slot-scope="scope">
           <span>{{ scope.row.email }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column :label="$t('table.token')" width="500" align="center">
+        <template slot-scope="scope">
+          <span>{{ scope.row.token }}</span>
         </template>
       </el-table-column>
       <el-table-column :label="$t('table.status')" class-name="status-col" width="100">
@@ -41,7 +46,7 @@
         </template>
       </el-table-column>
       <el-table-column :label="$t('table.actions')" align="center" width="400" class-name="small-padding fixed-width">
-        <template slot-scope="scope">
+        <template slot-scope="scope" >
           <el-button type="primary" size="mini" @click="handleUpdate(scope.row)">{{ $t('table.edit') }}</el-button>
           <el-button v-if="scope.row.status!='published'" size="mini" type="success" @click="handleModifyStatus(scope.row,'published')">{{ $t('table.publish') }}
           </el-button>
@@ -58,18 +63,24 @@
     <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible" custom-class="modal-info">
       <el-form ref="dataForm" :rules="rules" :model="temp" label-position="left" label-width="150px" style="width: 100%; margin-left:10px;">
         <el-form-item :label="$t('table.email')" prop="email">
-          <el-input :readonly="true" v-model="temp.email" type="email"/>
+          <el-input
+            v-model="temp.email"
+            type="email"
+            @keyup.enter.native="dialogStatus==='create'?createData():updateData()"
+          />
         </el-form-item>
-        <el-form-item :label="$t('table.password')" prop="password">
-          <el-input v-model="temp.password" type="password" />
-        </el-form-item>
-        <el-form-item :label="$t('table.password_confirm')" prop="password_confirm">
-          <el-input v-model="temp.password_confirm" type="password" />
+        <el-form-item :label="$t('table.token')" prop="token">
+          <el-input
+            v-model="temp.token"
+            type="text"
+            @keyup.enter.native="dialogStatus==='create'?createData():updateData()"
+
+          />
         </el-form-item>
       </el-form>
       <div slot="footer" class="dialog-footer">
         <el-button @click="dialogFormVisible = false">{{ $t('table.cancel') }}</el-button>
-        <el-button type="primary" @click="dialogStatus==='create'?createData():updateData()">{{ $t('table.confirm') }}</el-button>
+        <el-button :loading="loading" type="primary" @click="dialogStatus==='create'?createData():updateData()">{{ $t('table.confirm') }}</el-button>
       </div>
     </el-dialog>
 
@@ -84,7 +95,7 @@
 </template>
 
 <script>
-import { fetchList, fetchPv, createArticle, updateArticle } from '@/api/article'
+import { fetchList, fetchPv, createAccount, updateAccount, deleteAccount } from '@/api/account'
 import { isValidateEmail } from '@/utils/validate'
 import waves from '@/directive/waves' // Waves directive
 import { parseTime } from '@/utils'
@@ -128,20 +139,6 @@ export default {
         callback()
       }
     }
-    const validatePassword = (rule, value, callback) => {
-      if (value.length < 6) {
-        callback(new Error('Mật khẩu phải có chiều dài lớn hơn 6 ký tự'))
-      } else {
-        callback()
-      }
-    }
-    const validatePasswordConfirm = (rule, value, callback) => {
-      if (value !== this.temp.password) {
-        callback(new Error('Mật khẩu nhập lại không đúng'))
-      } else {
-        callback()
-      }
-    }
     return {
       tableKey: 0,
       list: null,
@@ -162,9 +159,7 @@ export default {
       showReviewer: false,
       temp: {
         id: undefined,
-        password: '',
-        title: '',
-        password_confirm: ''
+        token: ''
       },
       dialogFormVisible: false,
       dialogStatus: '',
@@ -176,11 +171,11 @@ export default {
       pvData: [],
       rules: {
         email: [{ required: true, trigger: 'change', validator: validateEmail }],
-        password: [{ required: true, trigger: 'change', validator: validatePassword }],
-        password_confirm: [{ required: true, trigger: 'change', validator: validatePasswordConfirm }]
+        token: [{ required: true, trigger: 'plug', message: 'Token không được để trống' }]
       },
       tempDelete: null,
-      downloadLoading: false
+      downloadLoading: false,
+      loading: false
     }
   },
   created() {
@@ -190,8 +185,8 @@ export default {
     getList() {
       this.listLoading = true
       fetchList(this.listQuery).then(response => {
-        this.list = response.data
-        this.total = response.data.length
+        this.list = response.data.data
+        this.total = response.data.total
         // Just to simulate the time of the request
         setTimeout(() => {
           this.listLoading = false
@@ -245,13 +240,15 @@ export default {
     createData() {
       this.$refs['dataForm'].validate((valid) => {
         if (valid) {
-          this.temp.id = parseInt(Math.random() * 100) + 1024 // mock a id
-          createArticle(this.temp).then(() => {
-            this.list.unshift(this.temp)
+          this.loading = true
+          createAccount(this.temp).then((data) => {
+            this.temp = data.data
+            this.list.push(this.temp)
+            this.loading = false
             this.dialogFormVisible = false
             this.$notify({
               title: this.$t('message.success'),
-              message: '创建成功',
+              message: 'Thành công',
               type: 'success',
               duration: 2000
             })
@@ -272,7 +269,9 @@ export default {
       this.$refs['dataForm'].validate((valid) => {
         if (valid) {
           const tempData = Object.assign({}, this.temp)
-          updateArticle(tempData).then(() => {
+          this.loading = true
+          updateAccount(tempData).then(() => {
+            this.loading = false
             for (const v of this.list) {
               if (v.id === this.temp.id) {
                 const index = this.list.indexOf(v)
@@ -283,7 +282,7 @@ export default {
             this.dialogFormVisible = false
             this.$notify({
               title: this.$t('message.success'),
-              message: '更新成功',
+              message: 'Update thành công',
               type: 'success',
               duration: 2000
             })
@@ -294,19 +293,24 @@ export default {
     handleDelete(row) {
       if (this.dialogDangerVisible === false) {
         this.dialogDangerVisible = true
-        this.tempDelete = row
+        this.tempDelete = Object.assign({}, row)
       } else {
         this.dialogDangerVisible = false
-        this.$notify({
-          title: this.$t('message.success'),
-          message: this.$t('message.success'),
-          type: 'success',
-          duration: 2000
+        console.log(this.tempDelete)
+        deleteAccount(this.tempDelete).then(() => {
+          this.$notify({
+            title: this.$t('message.success'),
+            message: 'Xóa thành công',
+            type: 'success',
+            duration: 2000
+          })
+          row = this.tempDelete
+          const index = this.list.indexOf(row)
+          this.list.splice(index, 1)
+          this.tempDelete = null
+        }).catch(err => {
+          console.log(err)
         })
-        row = this.tempDelete
-        const index = this.list.indexOf(row)
-        this.list.splice(index, 1)
-        this.tempDelete = null
       }
     },
     handleFetchPv(pv) {

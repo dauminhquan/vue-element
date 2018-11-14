@@ -1,5 +1,6 @@
 import { loginByUsername, loginByEmail, logout, getUserInfo } from '@/api/login'
 import { getToken, setToken, removeToken } from '@/utils/auth'
+import { RegistrationByEmail } from '../../api/registration'
 
 const user = {
   state: {
@@ -44,6 +45,15 @@ const user = {
   },
 
   actions: {
+    Registration({ commit }, userInfo) {
+      return new Promise((resolve, reject) => {
+        RegistrationByEmail(userInfo).then(response => {
+          resolve()
+        }).catch(error => {
+          reject(error)
+        })
+      })
+    },
     // 用户名登录
     LoginByUsername({ commit }, userInfo) {
       const username = userInfo.username.trim()

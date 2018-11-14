@@ -1,8 +1,5 @@
 import request from '@/utils/request'
-const UrlLogin = {
-  'login': '/login',
-  'profile': '/profile'
-}
+import UrlLogin from './urlApi'
 export function loginByUsername(username, password) {
   const data = {
     username,
