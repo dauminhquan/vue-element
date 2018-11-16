@@ -74,8 +74,8 @@ const user = {
       return new Promise((resolve, reject) => {
         loginByEmail(email, userInfo.password).then(response => {
           const data = response.data
-          commit('SET_TOKEN', data.success.accept_token)
-          setToken(response.data.success.accept_token)
+          commit('SET_TOKEN', data.token.key)
+          setToken(data.token.key)
           resolve()
         }).catch(error => {
           reject(error)

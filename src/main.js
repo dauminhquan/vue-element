@@ -12,6 +12,7 @@ import '@/styles/index.scss' // global css
 import App from './App'
 import router from './router'
 import store from './store'
+import VueSocketio from 'vue-socket.io'
 
 import i18n from './lang' // Internationalization
 import './icons' // icon
@@ -20,7 +21,7 @@ import './permission' // permission control
 import './mock' // simulation data
 
 import * as filters from './filters' // global filters
-
+Vue.use(VueSocketio, 'http://localhost:3001',store)
 Vue.use(Element, {
   size: Cookies.get('size') || 'medium', // set element-ui default size
   i18n: (key, value) => i18n.t(key, value)

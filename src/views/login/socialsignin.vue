@@ -104,7 +104,7 @@ export default {
         password: [{ required: true, trigger: 'change', validator: validatePassword }],
         password_confirm: [{ required: true, trigger: 'change', validator: validatePasswordConfirm }]
       },
-      loading: true,
+      loading: false,
       passwordType: 'password',
       passwordConfirmType: 'password'
     }
@@ -126,14 +126,12 @@ export default {
               email: this.registrationForm.email
             })
           }).catch((error) => {
-            console.log(error)
+            console.dir(error)
             let message = ''
             if (error.response !== undefined) {
-              if (error.response.data.errors.email !== undefined) {
-                if (error.response.data.errors.email.length > 0) {
-                  error.response.data.errors.email.forEach(item => {
-                    message += item + '\n'
-                  })
+              if (error.response.data.errors.code !== undefined) {
+                if (error.response.data.errors.code === 11000) {
+                  message = 'Email đã tồn tại. Vui lòng kiểm tra lại'
                 }
               }
             } else {
