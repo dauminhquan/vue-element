@@ -35,24 +35,28 @@
           <span>{{ scope.row.email }}</span>
         </template>
       </el-table-column>
-      <el-table-column :label="$t('table.token')" width="500" align="center">
+      <el-table-column :label="$t('table.password')" width="500" align="center">
         <template slot-scope="scope">
-          <span>{{ scope.row.token }}</span>
+          <span>{{ scope.row.password }}</span>
         </template>
       </el-table-column>
       <el-table-column :label="$t('table.status')" class-name="status-col" width="100">
         <template slot-scope="scope">
-          <el-tag :type="scope.row.status | statusFilter">{{ scope.row.status }}</el-tag>
+          <el-tag :type="scope.row.status | statusFilter">{{ scope.row.status == false ? 'Offline' : 'Online' }}</el-tag>
         </template>
       </el-table-column>
       <el-table-column :label="$t('table.actions')" align="center" width="400" class-name="small-padding fixed-width">
         <template slot-scope="scope" >
           <el-button type="primary" size="mini" @click="handleUpdate(scope.row)">{{ $t('table.edit') }}</el-button>
-          <el-button v-if="scope.row.status!='published'" size="mini" type="success" @click="handleModifyStatus(scope.row,'published')">{{ $t('table.publish') }}
+          <el-button v-if="scope.row.status!= true" size="mini" type="default" @click="handleOnline(scope.row,true)">{{ $t('table.off') }}
           </el-button>
-          <el-button v-if="scope.row.status!='draft'" size="mini" @click="handleModifyStatus(scope.row,'draft')">{{ $t('table.draft') }}
+          <el-button v-if="scope.row.status!= false" size="mini" type="success" @click="handleOnline(scope.row,false)">{{ $t('table.on') }}
           </el-button>
-          <el-button v-if="scope.row.status!='deleted'" size="mini" type="danger" @click="handleDelete(scope.row,'deleted')">{{ $t('table.delete') }}
+          <el-button size="mini">{{ scope.row.action }}
+          </el-button>
+          <el-button v-if="scope.row.status!= false" size="mini" type="success" @click="handlePostStatusToFacebook(scope.row,'Xin chào')">{{ $t('table.post_status') }}
+          </el-button>
+          <el-button v-if="scope.row.status!= true" size="mini" type="danger" @click="handleDelete(scope.row,'delete')">{{ $t('table.delete') }}
           </el-button>
         </template>
       </el-table-column>
@@ -69,10 +73,10 @@
             @keyup.enter.native="dialogStatus==='create'?createData():updateData()"
           />
         </el-form-item>
-        <el-form-item :label="$t('table.token')" prop="token">
+        <el-form-item :label="$t('table.password')" prop="password">
           <el-input
-            v-model="temp.token"
-            type="text"
+            v-model="temp.password"
+            type="password"
             @keyup.enter.native="dialogStatus==='create'?createData():updateData()"
 
           />
@@ -121,9 +125,9 @@ export default {
   filters: {
     statusFilter(status) {
       const statusMap = {
-        accept: 'success',
+        on: 'success',
         block: 'danger',
-        error: 'warring'
+        off: 'warring'
       }
       return statusMap[status]
     },
@@ -159,7 +163,7 @@ export default {
       showReviewer: false,
       temp: {
         id: undefined,
-        token: ''
+        password: ''
       },
       dialogFormVisible: false,
       dialogStatus: '',
@@ -171,11 +175,21 @@ export default {
       pvData: [],
       rules: {
         email: [{ required: true, trigger: 'change', validator: validateEmail }],
-        token: [{ required: true, trigger: 'plug', message: 'Token không được để trống' }]
+        password: [{ required: true, trigger: 'plug', message: 'password không được để trống' }]
       },
       tempDelete: null,
       downloadLoading: false,
       loading: false
+    }
+  },
+  sockets: {
+    action: function(data) {
+      this.$notify({
+        title: this.$t('message.success'),
+        message: data.message,
+        type: 'success',
+        duration: 2000
+      })
     }
   },
   created() {
@@ -184,9 +198,17 @@ export default {
   methods: {
     getList() {
       this.listLoading = true
+      const vm = this
       fetchList(this.listQuery).then(response => {
         this.list = response.data.data
         this.total = response.data.total
+        for (let i = 0; i < this.list.length; i++) {
+          const item = this.list[i]
+          this.$socket.on('action-' + item._id, function(data) {
+            console.log(data.message)
+            vm.list[i].action = data.message
+          })
+        }
         // Just to simulate the time of the request
         setTimeout(() => {
           this.listLoading = false
@@ -197,12 +219,15 @@ export default {
       this.listQuery.page = 1
       this.getList()
     },
-    handleModifyStatus(row, status) {
-      this.$message({
-        message: this.$t('message.success'),
-        type: 'success'
-      })
-      row.status = status
+    handleOnline(row, status) {
+      if (status === true) {
+        this.$socket.emit('post-status-' + row._id, 'xin chào')
+      }
+      // console.log(row)
+      // this.$message({
+      //   message: this.$t('message.success'),
+      //   type: 'success'
+      // })
     },
     sortChange(data) {
       const { prop, order } = data
@@ -220,13 +245,9 @@ export default {
     },
     resetTemp() {
       this.temp = {
-        id: undefined,
-        importance: 1,
-        remark: '',
-        timestamp: new Date(),
-        title: '',
-        status: 'published',
-        type: ''
+        _id: undefined,
+        email: '',
+        password: ''
       }
     },
     handleCreate() {
@@ -289,6 +310,11 @@ export default {
           })
         }
       })
+    },
+    handlePostStatusToFacebook(row, data) {
+      console.log(row)
+      // this.$socket.emit('post-status', data)
+      //
     },
     handleDelete(row) {
       if (this.dialogDangerVisible === false) {

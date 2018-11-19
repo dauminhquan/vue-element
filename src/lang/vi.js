@@ -144,7 +144,9 @@ export default {
     draft: 'Nhấp',
     delete: 'Xóa',
     cancel: 'Hủy',
-    confirm: 'Xác nhận'
+    confirm: 'Xác nhận',
+    on: 'Online',
+    off: 'Offline'
   },
   errorLog: {
     tips: 'Please click the bug icon in the upper right corner',

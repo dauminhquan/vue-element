@@ -127,6 +127,9 @@ export default {
           this.loading = true
           this.$store.dispatch('LoginByEmail', this.loginForm).then(() => {
             this.loading = false
+            this.$socket.emit('connect-to-server', {
+              token: this.$store.getters.token
+            })
             this.$router.push({ path: this.redirect || '/' })
           }).catch((error) => {
             console.dir(error)
