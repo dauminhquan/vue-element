@@ -41,7 +41,16 @@ export function updateAccount(data) {
 }
 export function deleteAccount(data) {
   return request({
-    url: `accounts/${data.id}`,
+    url: `accounts/${data._id}`,
     method: 'delete'
+  })
+}
+export function uploadCsv(data) {
+  const formData = new FormData()
+  formData.append('csvFile', data)
+  return request({
+    url: 'accounts/upload-csv',
+    method: 'post',
+    data: formData
   })
 }

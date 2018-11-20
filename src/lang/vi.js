@@ -146,7 +146,11 @@ export default {
     cancel: 'Hủy',
     confirm: 'Xác nhận',
     on: 'Online',
-    off: 'Offline'
+    off: 'Offline',
+    function: 'Các chức năng',
+    post_status: 'Đăng tin lên facebook',
+    select_all: 'Chọn tất cả',
+    upload: 'Tải lên CSV'
   },
   errorLog: {
     tips: 'Please click the bug icon in the upper right corner',
