@@ -150,7 +150,8 @@ export default {
     function: 'Các chức năng',
     post_status: 'Đăng tin lên facebook',
     select_all: 'Chọn tất cả',
-    upload: 'Tải lên CSV'
+    upload: 'Tải lên CSV',
+    deletes: 'Xóa các mục đã chọn'
   },
   errorLog: {
     tips: 'Please click the bug icon in the upper right corner',

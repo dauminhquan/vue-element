@@ -14,7 +14,9 @@
       <el-button v-waves class="filter-item" type="primary" icon="el-icon-search" @click="handleFilter">{{ $t('table.search') }}</el-button>
       <el-button class="filter-item" style="margin-left: 10px;" type="primary" icon="el-icon-edit" @click="handleCreate">{{ $t('table.add') }}</el-button>
       <el-button v-waves :loading="downloadLoading" class="filter-item" type="primary" icon="el-icon-download" @click="handleDownload">{{ $t('table.export') }}</el-button>
-      <el-button v-waves :loading="uploadLoading" class="filter-item" type="primary" icon="el-icon-upload" @click="dialogUploadCSVVisible = true">{{ $t('table.upload') }}</el-button>
+      <el-button v-waves class="filter-item" type="primary" icon="el-icon-document" @click="dialogUploadCSVVisible = true">{{ $t('table.upload') }}</el-button>
+      <el-button v-waves class="filter-item" type="danger" icon="el-icon-remove" @click="dialogDeletesVisible = true">{{ $t('table.deletes') }}</el-button>
+      <el-button v-waves class="filter-item" type="info" icon="el-icon-upload" @click="dialogActionsVisible = true">{{ $t('table.actions') }}</el-button>
       <el-checkbox v-model="showReviewer" class="filter-item" style="margin-left:15px;" @change="tableKey=tableKey+1">{{ $t('table.reviewer') }}</el-checkbox>
       <el-checkbox :value="selectAll" class="filter-item" style="margin-left:15px;" @change="handleSelectAll">{{ $t('table.select_all') }}</el-checkbox>
     </div>
@@ -29,7 +31,7 @@
       @sort-change="sortChange">
       <el-table-column label="#" align="center" width="65">
         <template slot-scope="scope">
-          <input v-model="scope.row.selected" type="checkbox">
+          <input v-model="scope.row.selected" type="checkbox" @change="checkCheckAll">
         </template>
       </el-table-column>
       <el-table-column :label="$t('table.email')" width="300" align="center">
@@ -91,9 +93,18 @@
       </span>
     </el-dialog>
     <el-dialog :visible.sync="dialogUploadCSVVisible" custom-class="modal-info" title="Tải lên file CSV">
-      <input type="file" class="form-control" @change="setCsvFileUpload">
+      <input ref="input_file_csv" type="file" class="form-control" @change="setCsvFileUpload">
       <span slot="footer" class="dialog-footer">
         <el-button v-waves :loading="uploadLoading" class="filter-item" type="success" icon="el-icon-upload" @click="handleUpload">{{ $t('table.upload') }}</el-button>
+      </span>
+    </el-dialog>
+    <el-dialog :visible.sync="dialogActionsVisible" custom-class="modal-info" title="Thực hiện các chức năng">
+      <el-button v-waves :loading="uploadLoading" class="filter-item" type="success" @click="handleActions('post_status')">{{ $t('table.post_status') }}</el-button>
+    </el-dialog>
+    <el-dialog :visible.sync="dialogDeletesVisible" custom-class="modal-danger" title="Bạn chắc chắn muốn xóa chứ ?">
+      Sau khi xóa, mọi dữ liệu liên qua cũng sẽ bị xóa!
+      <span slot="footer" class="dialog-footer">
+        <el-button :loading="deletesLoading" type="danger" @click="handleDeletes">{{ $t('table.confirm') }}</el-button>
       </span>
     </el-dialog>
   </div>
@@ -187,7 +198,10 @@ export default {
       loading: false,
       statusPostOne: '',
       selectAll: false,
-      csvFile: null
+      csvFile: null,
+      dialogActionsVisible: false,
+      dialogDeletesVisible: false,
+      deletesLoading: false
     }
   },
   sockets: {
@@ -357,6 +371,18 @@ export default {
         })
       }
     },
+    handleDeletes() {
+      const data = this.list.filter(item => {
+        return item.selected === true
+      })
+      if (data.length < 1) {
+        this.$message('Không có mục nào được chọn', {
+          type: 'error'
+        })
+      } else {
+        this.deletesLoading = true
+      }
+    },
     handleFetchPv(pv) {
       fetchPv(pv).then(response => {
         this.pvData = response.data.pvData
@@ -382,6 +408,16 @@ export default {
       const csvFile = this.csvFile
       uploadCsv(csvFile).then(data => {
         this.uploadLoading = false
+        this.$notify({
+          title: this.$t('message.success'),
+          message: 'Upload thành công',
+          type: 'success',
+          duration: 2000
+        })
+        this.csvFile = null
+        this.$refs.input_file_csv.value = null
+        this.dialogUploadCSVVisible = false
+        this.getList()
       }).catch((err) => {
         console.log(err)
         this.$message('Có lỗi xảy ra', 'error')
@@ -403,6 +439,19 @@ export default {
           item.selected = false
           return item
         })
+      }
+    },
+    handleActions(action) {
+    },
+    checkCheckAll() {
+      const data = this.list.filter(item => {
+        return item.selected === true
+      })
+
+      if (data.length === this.list.length) {
+        this.selectAll = true
+      } else {
+        this.selectAll = false
       }
     },
     setCsvFileUpload(e) {
