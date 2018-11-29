@@ -54,3 +54,13 @@ export function uploadCsv(data) {
     data: formData
   })
 }
+
+export function deletesAccount(ids) {
+  return request({
+    url: 'accounts/deletes',
+    method: 'post',
+    data: {
+      data: ids
+    }
+  })
+}

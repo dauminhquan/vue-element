@@ -39,12 +39,6 @@
           <span>{{ scope.row.email }}</span>
         </template>
       </el-table-column>
-      <el-table-column :label="$t('table.function')" class-name="status-col" width="400">
-        <template slot-scope="scope">
-          <el-button size="mini" type="default" @click="handleShowDialogPostStatus(scope.row)">{{ $t('table.post_status') }}
-          </el-button>
-        </template>
-      </el-table-column>
       <el-table-column :label="$t('table.actions')" align="center" width="400" class-name="small-padding fixed-width">
         <template slot-scope="scope" >
           <el-button type="primary" size="mini" @click="handleUpdate(scope.row)">{{ $t('table.edit') }}</el-button>
@@ -87,9 +81,9 @@
       </span>
     </el-dialog>
     <el-dialog :visible.sync="dialogPostStatusVisible" custom-class="modal-info" title="Đăng status lên Facebook">
-      <textarea v-model="statusPostOne" class="form-control" rows="5" style="width: 100%" placeholder="Điền nội dung tin" required/>
+      <textarea v-model="statusPost" class="form-control" rows="5" style="width: 100%" placeholder="Điền nội dung tin" required/>
       <span slot="footer" class="dialog-footer">
-        <el-button type="success" @click="handlePostStatusOne">{{ $t('table.confirm') }}</el-button>
+        <el-button type="success" @click="handlePostStatus">{{ $t('table.confirm') }}</el-button>
       </span>
     </el-dialog>
     <el-dialog :visible.sync="dialogUploadCSVVisible" custom-class="modal-info" title="Tải lên file CSV">
@@ -116,7 +110,7 @@ import { isValidateEmail } from '@/utils/validate'
 import waves from '@/directive/waves' // Waves directive
 import { parseTime } from '@/utils'
 import Pagination from '@/components/Pagination'
-import { uploadCsv } from '../../api/account' // Secondary package based on el-pagination
+import { deletesAccount, uploadCsv } from '../../api/account' // Secondary package based on el-pagination
 
 const calendarTypeOptions = [
   { key: 'CN', display_name: 'China' },
@@ -196,12 +190,13 @@ export default {
       downloadLoading: false,
       uploadLoading: false,
       loading: false,
-      statusPostOne: '',
+      statusPost: '',
       selectAll: false,
       csvFile: null,
       dialogActionsVisible: false,
       dialogDeletesVisible: false,
-      deletesLoading: false
+      deletesLoading: false,
+      oldStatus: ''
     }
   },
   sockets: {
@@ -232,6 +227,14 @@ export default {
               title: vm.$t('message.success'),
               message: 'Đăng thành công tin cho tài khoản: ' + item.email,
               type: 'success',
+              duration: 2000
+            })
+          })
+          this.$socket.on('error-' + item._id, function(data) {
+            vm.$notify({
+              title: vm.$t('message.success'),
+              message: 'Có lỗi: ' + data.message + ' - Tài khoản ' + item.email,
+              type: 'dranger',
               duration: 2000
             })
           })
@@ -315,16 +318,29 @@ export default {
       this.dialogPostStatusVisible = true
       this.temp = row
     },
-    handlePostStatusOne() {
-      if (this.statusPostOne == null || this.statusPostOne === '' || this.statusPostOne === undefined) {
+    handlePostStatus() {
+      if (this.statusPost == null || this.statusPost === '' || this.statusPost === undefined || this.temp.length === 0) {
         this.$notify({
           title: this.$t('message.error'),
           message: 'Vui lòng điền đầy đủ thông tin',
           type: 'error',
           duration: 2000
         })
+      }
+      if (this.statusPost === this.oldStatus) {
+        this.$notify({
+          title: this.$t('message.error'),
+          message: 'Status giống với staus cũ',
+          type: 'error',
+          duration: 2000
+        })
       } else {
-        this.$socket.emit('post-status-' + this.temp._id, this.statusPostOne)
+        this.oldStatus = this.statusPost
+        this.temp.forEach(item => {
+          this.$socket.emit('post-status-' + item._id, {
+            message: this.statusPost
+          })
+        })
       }
     },
     handleCreate() {
@@ -380,7 +396,22 @@ export default {
           type: 'error'
         })
       } else {
-        this.deletesLoading = true
+        const ids = data.map(item => {
+          return item._id
+        })
+        deletesAccount(ids).then(data => {
+          this.$notify({
+            title: this.$t('message.success'),
+            message: 'Xóa thành công',
+            type: 'success',
+            duration: 2000
+          })
+          this.dialogDeletesVisible = false
+          this.selectAll = false
+          this.getList()
+        })
+        console.log(data)
+        // this.deletesLoading = true
       }
     },
     handleFetchPv(pv) {
@@ -442,6 +473,11 @@ export default {
       }
     },
     handleActions(action) {
+      this.temp = this.list.filter(item => {
+        return item.selected === true
+      })
+      this.dialogActionsVisible = false
+      this.dialogPostStatusVisible = true
     },
     checkCheckAll() {
       const data = this.list.filter(item => {
